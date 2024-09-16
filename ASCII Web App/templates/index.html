@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANSI Color Escape Sequence HTML Viewer</title>
+    <style>
+        body {
+            font-family: monospace;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        #output {
+            white-space: pre; /* Disable word wrapping */
+            max-width: 800px;
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #444;
+            background-color: #2d2d2d;
+            overflow-x: auto; /* Allow horizontal scrolling if content is too wide */
+            font-size: 4px; /* Set smaller font size */
+            line-height: 1.4; /* Optional: Adjust line height for better readability */
+        }
+    </style>
+</head>
+<body>
+    <h1>ANSI Color Escape Sequence HTML Viewer</h1>
+    <form action="/" method="POST" enctype="multipart/form-data">
+        <input type="file" name="image" accept="image/*">
+        <input type="submit" value="Upload Image">
+    </form>
+
+    {% if ascii_art %}
+    <div id="output">
+        <pre>{{ ascii_art|safe }}</pre>  <!-- This will inject the HTML safely -->
+    </div>
+    {% endif %}
+</body>
+</html>
