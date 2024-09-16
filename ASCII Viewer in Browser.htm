@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANSI Color Escape Sequence HTML Viewer</title>
+    <style>
+        body {
+            font-family: monospace;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        #output {
+            white-space: pre; /* Disable word wrapping */
+            max-width: 800px;
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #444;
+            background-color: #2d2d2d;
+            overflow-x: auto; /* Allow horizontal scrolling if content is too wide */
+            font-size: 4px; /* Set smaller font size */
+            line-height: 1.4; /* Optional: Adjust line height for better readability */
+        }
+        #fileInput {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>ANSI Color Escape Sequence HTML Viewer</h1>
+    <input type="file" id="fileInput" accept=".txt">
+    <div id="output"></div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const output = document.getElementById('output');
+
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                output.innerHTML = parseANSI(content);
+            };
+            reader.readAsText(file);
+        }
+
+        function parseANSI(text) {
+            const ansiRegex = /\033\[38;5;(\d+)m/g;
+            let result = '';
+            let lastIndex = 0;
+            let match;
+
+            while ((match = ansiRegex.exec(text)) !== null) {
+                result += escapeHTML(text.slice(lastIndex, match.index));
+                const colorCode = parseInt(match[1]);
+                result += `<span style="color: ${getColor(colorCode)};">`;
+                lastIndex = ansiRegex.lastIndex;
+            }
+
+            result += escapeHTML(text.slice(lastIndex));
+            return result.replace(/\033\[0m/g, '</span>');
+        }
+
+        function getColor(code) {
+            if (code < 16) {
+                const colors = [
+                    '#000000', '#800000', '#008000', '#808000', '#000080', '#800080', '#008080', '#c0c0c0',
+                    '#808080', '#ff0000', '#00ff00', '#ffff00', '#0000ff', '#ff00ff', '#00ffff', '#ffffff'
+                ];
+                return colors[code];
+            } else if (code < 232) {
+                const r = Math.floor((code - 16) / 36);
+                const g = Math.floor(((code - 16) % 36) / 6);
+                const b = (code - 16) % 6;
+                return `rgb(${r * 51}, ${g * 51}, ${b * 51})`;
+            } else {
+                const gray = (code - 232) * 10 + 8;
+                return `rgb(${gray}, ${gray}, ${gray})`;
+            }
+        }
+
+        function escapeHTML(text) {
+            return text.replace(/[&<>'"]/g, (char) => {
+                const entities = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                };
+                return entities[char] || char;
+            });
+        }
+    </script>
+</body>
+</html>
