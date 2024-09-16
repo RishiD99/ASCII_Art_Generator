@@ -2,27 +2,29 @@ import numpy as np
 from PIL import Image as im
 from PIL import ImageEnhance, ImageFilter
 import os
+from pathlib import Path
+import requests
+from io import BytesIO
 
 ascii_list = [ ' ', '.', ':', '-', '=', '+', '*', '#', '%', '@' ]
 length = len(ascii_list)
 
+def download_image_from_url(url):
+    """
+    Downloads an image from the given URL.
 
-def get_valid_path():
-    while True:
-        path = input('Input Image Path: ').strip('"')  # Remove any surrounding quotes
-        if os.path.exists(path):
-            return path
-        print("Error: File not found. Please enter a valid path.")
+    Parameters
+    ----------
+    url : str
+        The URL of the image to download.
 
-def get_valid_reduction_factor():
-    while True:
-        try:
-            factor = float(input('Input Image Size Reduction Factor (minimum 2): '))
-            if factor >= 2:
-                return factor
-            print("Error: Reduction factor must be at least 2.")
-        except ValueError:
-            print("Error: Please enter a valid number.")
+    Returns
+    -------
+    PIL.Image
+        The downloaded image as a PIL Image object.
+    """
+    response = requests.get(url)
+    return im.open(BytesIO(response.content))
 
 def get_file_name(path):
     # Get the file name with extension
@@ -31,9 +33,7 @@ def get_file_name(path):
     file_name, file_extension = os.path.splitext(full_file_name)
     return file_name
 
-path = get_valid_path()
-reduction_factor = get_valid_reduction_factor()
-file_name = get_file_name(path)
+
 
 palette = [
     (0, 0, 0), (128, 0, 0), (0, 128, 0), (128, 128, 0),
@@ -106,9 +106,9 @@ n_colors, _ = np.array(palette).shape
 
 
 # n is the reduction factor
-def image_processing(img_path, n, contrast_factor=1.5, sharpness_factor=2.0, brightness_factor=1.2):
+def image_processing(img, n, contrast_factor=1.5, sharpness_factor=2.0, brightness_factor=1.2):
         
-    img = im.open(img_path)  
+    # img = im.open(img_path)  
   
     w, h = img.size
     img = img.resize(((int(w/n)), int((h * 0.6)/n)) , im.LANCZOS)  
@@ -199,14 +199,84 @@ def color_ascii(gray_art, nearest_color_arr):
     return color_art
 
 
-file_path = fr"C:\Users\Asus\OneDrive\Desktop\Important\Timepass\ASCII Art\GrayScale\{file_name} Gray_ASCII.txt"
-with open(file_path, 'w') as file:
-    file.write(gray_art)
+def gray_ascii_Generator_from_URL(url, reduction_factor = 2):
 
+    """
+    Generates a grayscale ASCII art from the given image file and saves it to a file in the same directory.
 
-file_path = fr"C:\Users\Asus\OneDrive\Desktop\Important\Timepass\ASCII Art\Color\{file_name} Color_ASCII.txt"
-with open(file_path, 'w') as file:
-    file.write(color_art)
+    Parameters
+    ----------
+    url : str
+        The path to the image file.
+    reduction_factor : int, optional
+        The reduction factor for the image size. Defaults to 2.
+
+    Returns
+    -------
+    str
+        The path to the generated ASCII art file.
+
+    """
+    
+    rf = reduction_factor
+
+    img = download_image_from_url(url)
+    file_name = url.split('/')[-1].split('.')[0]  # Extract filename from URL
+
+    gray_arr, _ = image_processing(img, rf)
+
+    gray_art = gray_ascii(gray_arr)
+
+    # Construct the save path using pathlib (this is OS-independent)
+    save_dir = Path(file_path).parent / "ASCII Art" / "GrayScale"
+    save_dir.mkdir(parents=True, exist_ok=True)  # Create the directory if it doesn't exist
+    save_path = save_dir / f"{file_name} Gray.txt"
+    
+    with save_path.open('w') as file:
+        file.write(gray_art)
+
+    return str(save_path)
+
+def color_ascii_Generator_from_URL(url, reduction_factor = 2):
+
+    """
+    Generates a color ASCII art from the given image file and saves it to a file in the same directory.
+
+    Parameters
+    ----------
+    url : str
+        The path to the image file.
+    reduction_factor : int, optional
+        The reduction factor for the image size. Defaults to 2.
+
+    Returns
+    -------
+    str
+        The path to the generated ASCII art file.
+
+    """
+    rf = reduction_factor
+
+    img = download_image_from_url(url)
+    file_name = url.split('/')[-1].split('.')[0]  # Extract filename from URL
+
+    gray_arr, img_arr = image_processing(img, rf)
+
+    nearest_color_arr = nearest_color_array(img_arr, palette)
+
+    gray_art = gray_ascii(gray_arr)
+
+    color_art = color_ascii(gray_art, nearest_color_arr)
+
+    # Construct the save path using pathlib (this is OS-independent)
+    save_dir = Path(file_path).parent / "ASCII Art" / "Color"
+    save_dir.mkdir(parents=True, exist_ok=True)  # Create the directory if it doesn't exist
+    save_path = save_dir / f"{file_name} Color_ASCII.txt"
+    
+    with save_path.open('w') as file:
+        file.write(color_art)
+
+    return str(save_path)
 
 
 
