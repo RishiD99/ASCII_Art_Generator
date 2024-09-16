@@ -199,18 +199,6 @@ def color_ascii(gray_art, nearest_color_arr):
     return color_art
 
 
-gray_arr, img_arr = image_processing(path, reduction_factor)
-
-
-gray_art = gray_ascii(gray_arr)
-
-
-nearest_color_arr = nearest_color_array(img_arr, palette)
-
-
-color_art = color_ascii(gray_art, nearest_color_arr)
-
-
 file_path = fr"C:\Users\Asus\OneDrive\Desktop\Important\Timepass\ASCII Art\GrayScale\{file_name} Gray_ASCII.txt"
 with open(file_path, 'w') as file:
     file.write(gray_art)
