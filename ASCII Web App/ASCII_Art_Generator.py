@@ -2,6 +2,7 @@ import numpy as np
 from PIL import Image as im
 from PIL import ImageEnhance, ImageFilter
 import os
+from pathlib import Path
 
 ascii_list = [ ' ', '.', ':', '-', '=', '+', '*', '#', '%', '@' ]
 length = len(ascii_list)
@@ -226,11 +227,15 @@ def gray_ascii_Generator(file_path, reduction_factor = 2):
 
     gray_art = gray_ascii(gray_arr)
 
-    save_path = fr"C:\Users\Asus\OneDrive\Desktop\Important\Timepass\ASCII Art\GrayScale\{file_name} Gray_ASCII.txt"
-    with open(save_path, 'w') as file:
+    # Construct the save path using pathlib (this is OS-independent)
+    save_dir = Path(file_path).parent / "ASCII Art" / "GrayScale"
+    save_dir.mkdir(parents=True, exist_ok=True)  # Create the directory if it doesn't exist
+    save_path = save_dir / f"{file_name} Gray.txt"
+    
+    with save_path.open('w') as file:
         file.write(gray_art)
 
-    return save_path
+    return str(save_path)
 
 def color_ascii_Generator(file_path, reduction_factor = 2):
 
@@ -263,11 +268,15 @@ def color_ascii_Generator(file_path, reduction_factor = 2):
 
     color_art = color_ascii(gray_art, nearest_color_arr)
 
-    save_path = fr"C:\Users\Asus\OneDrive\Desktop\Important\Timepass\ASCII Art\Color\{file_name} Color_ASCII.txt"
-    with open(save_path, 'w') as file:
+    # Construct the save path using pathlib (this is OS-independent)
+    save_dir = Path(file_path).parent / "ASCII Art" / "Color"
+    save_dir.mkdir(parents=True, exist_ok=True)  # Create the directory if it doesn't exist
+    save_path = save_dir / f"{file_name} Color_ASCII.txt"
+    
+    with save_path.open('w') as file:
         file.write(color_art)
 
-    return save_path
+    return str(save_path)
 
 p1 = r"C:\Users\Asus\Downloads\Studio Ghibli 1.jpg"
 s = color_ascii_Generator(p1, 4)
